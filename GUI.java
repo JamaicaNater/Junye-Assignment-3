@@ -72,9 +72,13 @@ public class GUI
         mainPanel.add(grid, BorderLayout.WEST);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
 
+        JLabel blankLabel = new JLabel("");
+        JLabel blankLabel2 = new JLabel("");
+
         JLabel testLabel2 = new JLabel(" Please choose from the dropdown below ", SwingConstants.CENTER);
             testLabel2.setFont(new java.awt.Font("Serif", Font.PLAIN, 20));
             testLabel2.setForeground(Color.WHITE);
+        c.anchor = GridBagConstraints.FIRST_LINE_START;
         c.gridx = 0;
         c.gridy = 0;
         grid.add(testLabel2, c);
@@ -91,21 +95,26 @@ public class GUI
         JLabel alert = new JLabel("Enter Review ID");
             alert.setFont(new java.awt.Font("Serif", Font.PLAIN, 20));
             alert.setForeground(Color.WHITE);
+            alert.setVisible(false);
         c.gridx = 0;
-        c.gridy = 4;    
+        c.gridy = 3;    
         grid.add(alert, c);
         
         JTextField inputText = new JTextField(10);
+            inputText.setVisible(false);
+
         c.gridx = 0;
-        c.gridy = 6;  
+        c.gridy = 4;  
         grid.add(inputText, c);
 
         JButton searchButton = new JButton("Search");
+          searchButton.setVisible(false);
         c.gridx = 0;
-        c.gridy = 7;  
+        c.gridy = 5;  
         grid.add(searchButton, c);
 
         JPanel radioHolder = new JPanel(new GridLayout(1, 2));
+              radioHolder.setVisible(false);
 
         JRadioButton stringButton = new JRadioButton("Search by Review substring");
             stringButton.setOpaque(true);
@@ -123,17 +132,19 @@ public class GUI
             group.add(idButton);
 
         c.gridx = 0;
-        c.gridy = 8;  
+        c.gridy = 6;  
         grid.add(radioHolder, c);
 
         JTextArea stringInput = new JTextArea(10,20);
+            stringInput.setVisible(false);
         c.gridx = 0;
-        c.gridy = 10;  
+        c.gridy = 7;  
         grid.add(stringInput, c);
 
         JButton searchButton2 = new JButton("Search");
+            searchButton2.setVisible(false);
         c.gridx = 0;
-        c.gridy = 12;  
+        c.gridy = 8;  
         grid.add(searchButton2, c);
 
         mainWindow.getContentPane().add(mainPanel, BorderLayout.CENTER);
