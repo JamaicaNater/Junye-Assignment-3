@@ -38,117 +38,145 @@ public class GUI
        "Pool", new Integer(10)}
         };
 
-        JFrame mainWindow = new JFrame("Move Review Database");
+        JFrame mainWindow = new JFrame("Move Review Database"); // main window for the GUI
             mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
           
-        JPanel mainPanel = new JPanel(new BorderLayout());
-            mainPanel.setOpaque(true);
-            mainPanel.setBackground(Color.BLACK);
+          JPanel mainPanel = new JPanel(new BorderLayout()); // specific layout within the mainWindow
+              mainPanel.setOpaque(true);
+              mainPanel.setBackground(Color.BLACK);
 
-        JLabel title = new JLabel("Movie Review Database", SwingConstants.CENTER);
-            title.setFont(new java.awt.Font("Serif", Font.BOLD, 40));
-            title.setOpaque(true);
-            title.setForeground(Color.WHITE);
-            title.setBackground(Color.BLACK);
-            mainPanel.add(title, BorderLayout.PAGE_START);
 
-        JPanel grid = new JPanel(new GridBagLayout());
-            grid.setBackground(Color.BLACK);
+            JLabel title = new JLabel("Movie Review Database", SwingConstants.CENTER); // Title for the GUI
+                title.setFont(new java.awt.Font("Serif", Font.BOLD, 40));
+                title.setOpaque(true);
+                title.setForeground(Color.WHITE);
+                title.setBackground(Color.BLACK);
+                mainPanel.add(title, BorderLayout.PAGE_START);
 
-        GridBagConstraints c = new GridBagConstraints();
+            JPanel grid = new JPanel(new GridBagLayout()); // a flexible grid to go in the far left panel
+                grid.setBackground(Color.BLACK);
 
-        JScrollPane scrollPane = new JScrollPane();
+        GridBagConstraints c = new GridBagConstraints(); // used to control the attributes of the GridBag
 
-        JTable reviewTable = new JTable(data, tableColumnNames);
-            reviewTable.setFont(new Font("Serif", Font.PLAIN, 16));
-            reviewTable.setOpaque(true);
-            reviewTable.setForeground(Color.WHITE);
-            reviewTable.setBackground(Color.BLACK);
 
-        scrollPane.setViewportView(reviewTable);
-            scrollPane.getViewport().setBackground(Color.BLACK);
-            scrollPane.getViewport().setForeground(Color.WHITE);
+            JTable reviewTable = new JTable(data, tableColumnNames);// table to hold data
+                reviewTable.setFont(new Font("Serif", Font.PLAIN, 16));
+                reviewTable.setOpaque(true);
+                reviewTable.setForeground(Color.WHITE);
+                reviewTable.setBackground(Color.BLACK);
+
+            JScrollPane scrollPane = new JScrollPane(); // put the table inside this to give it headers and make it scrollable
+            scrollPane.setViewportView(reviewTable);
+                scrollPane.getViewport().setBackground(Color.BLACK);
+                scrollPane.getViewport().setForeground(Color.WHITE);
                 
         mainPanel.add(grid, BorderLayout.WEST);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
 
+              JPanel mainQuestionHolder = new JPanel(new GridLayout(2, 1)); // to hold the main Question and combo box
+                  mainQuestionHolder.setOpaque(true);
+                  mainQuestionHolder.setForeground(Color.WHITE);
+                  mainQuestionHolder.setBackground(Color.BLACK);
+
+                    JLabel mainQuestion = new JLabel(" Please choose from the options below ", SwingConstants.CENTER);
+                        mainQuestion.setFont(new java.awt.Font("Serif", Font.PLAIN, 20));
+                        mainQuestion.setForeground(Color.WHITE);
+                    mainQuestionHolder.add(mainQuestion); // add to holder
+
+                    JComboBox userOptions = new JComboBox();
+                        userOptions.addItem("1. Load new movie review collection");
+                        userOptions.addItem("2. Delete movie reviews from database (given its id).");
+                        userOptions.addItem("3. Search movie reviews in database");
+                        userOptions.addItem("4. Show database");
+                    mainQuestionHolder.add(userOptions); // add to holder
+
+                    c.insets = new Insets(20,10,20,10);
+                    c.gridx = 0;
+                    c.gridy = 0;
+                    c.weighty = 0;
+
+                    grid.add(mainQuestionHolder, c); // add holder to grid
+
+        c.insets = new Insets(0,0,0,0); // reseting the padding value
+
+              JPanel deleteByIdHolder = new JPanel(new GridLayout(3, 1)); // holds Label+TextField+SearchButton
+                  deleteByIdHolder.setOpaque(true);
+                  deleteByIdHolder.setForeground(Color.WHITE);
+                  deleteByIdHolder.setBackground(Color.BLACK);
+
+                JLabel alert = new JLabel("Enter Review ID");
+                    alert.setFont(new java.awt.Font("Serif", Font.PLAIN, 20));
+                    alert.setForeground(Color.WHITE);  
+                deleteByIdHolder.add(alert); // add to holder
+                
+                JTextField inputText = new JTextField(10);
+                deleteByIdHolder.add(inputText); // add to holder
+
+                JButton searchButton = new JButton("Search"); 
+                deleteByIdHolder.add(searchButton); // add to holder
+
+                c.gridx = 0;
+                c.gridy = 1;
+                c.weighty = 0;
+
+                deleteByIdHolder.setVisible(true);
+
+                grid.add(deleteByIdHolder, c); // adding holder to the grid
+
+              JPanel searchReviewHolder = new JPanel(new GridBagLayout()); // radio buttons+TextBox+SearchButton
+                  searchReviewHolder.setOpaque(true);
+                  searchReviewHolder.setForeground(Color.WHITE);
+                  searchReviewHolder.setBackground(Color.BLACK);
+
+                JPanel radioHolder = new JPanel(new GridLayout(1, 2));
+
+                JRadioButton stringButton = new JRadioButton("By substring");
+                    stringButton.setOpaque(true);
+                    stringButton.setForeground(Color.WHITE);
+                    stringButton.setBackground(Color.BLACK);
+                radioHolder.add(stringButton);
+                JRadioButton idButton = new JRadioButton("By Review ID");
+                    idButton.setOpaque(true);
+                    idButton.setForeground(Color.WHITE);
+                    idButton.setBackground(Color.BLACK);
+                radioHolder.add(idButton);
+
+                ButtonGroup group = new ButtonGroup();
+                    group.add(stringButton);
+                    group.add(idButton);
+                c.gridx = 0;
+                c.gridy = 0;    
+                searchReviewHolder.add(radioHolder, c);
+
+                JTextArea stringInput = new JTextArea(4,30);
+                c.gridx = 0;
+                c.gridy = 1; 
+                searchReviewHolder.add(stringInput, c);
+
+                JButton searchButton2 = new JButton("Search");
+                  searchButton2.setPreferredSize(new Dimension(130,30));
+                c.gridx = 0;
+                c.gridy = 2;
+                c.insets = new Insets(0,10,0,10);
+                searchReviewHolder.add(searchButton2, c);
+
+                c.insets = new Insets(20,0,0,0);
+                c.gridx = 0;
+                c.gridy = 2;
+                c.weighty = 0;
+                grid.add(searchReviewHolder, c);
+
         JLabel blankLabel = new JLabel("");
-        JLabel blankLabel2 = new JLabel("");
+          blankLabel.setOpaque(true);
+          blankLabel.setBackground(Color.BLACK);
+          c.gridx = 0;
+          c.gridy = 3;
+          c.weighty = .5;
+          grid.add(blankLabel, c);
 
-        JLabel testLabel2 = new JLabel(" Please choose from the dropdown below ", SwingConstants.CENTER);
-            testLabel2.setFont(new java.awt.Font("Serif", Font.PLAIN, 20));
-            testLabel2.setForeground(Color.WHITE);
-        c.anchor = GridBagConstraints.FIRST_LINE_START;
-        c.gridx = 0;
-        c.gridy = 0;
-        grid.add(testLabel2, c);
-
-        JComboBox userOptions = new JComboBox();
-            userOptions.addItem("1. Load new movie review collection");
-            userOptions.addItem("2. Delete movie reviews from database (given its id).");
-            userOptions.addItem("3. Search movie reviews in database");
-            userOptions.addItem("4. Show database");
-        c.gridx = 0;
-        c.gridy = 1;
-        grid.add(userOptions, c);
-
-        JLabel alert = new JLabel("Enter Review ID");
-            alert.setFont(new java.awt.Font("Serif", Font.PLAIN, 20));
-            alert.setForeground(Color.WHITE);
-            alert.setVisible(false);
-        c.gridx = 0;
-        c.gridy = 3;    
-        grid.add(alert, c);
-        
-        JTextField inputText = new JTextField(10);
-            inputText.setVisible(false);
-
-        c.gridx = 0;
-        c.gridy = 4;  
-        grid.add(inputText, c);
-
-        JButton searchButton = new JButton("Search");
-          searchButton.setVisible(false);
-        c.gridx = 0;
-        c.gridy = 5;  
-        grid.add(searchButton, c);
-
-        JPanel radioHolder = new JPanel(new GridLayout(1, 2));
-              radioHolder.setVisible(false);
-
-        JRadioButton stringButton = new JRadioButton("Search by Review substring");
-            stringButton.setOpaque(true);
-            stringButton.setForeground(Color.WHITE);
-            stringButton.setBackground(Color.BLACK);
-            radioHolder.add(stringButton);
-        JRadioButton idButton = new JRadioButton("Search by Review ID");
-            idButton.setOpaque(true);
-            idButton.setForeground(Color.WHITE);
-            idButton.setBackground(Color.BLACK);
-            radioHolder.add(idButton);
-
-        ButtonGroup group = new ButtonGroup();
-            group.add(stringButton);
-            group.add(idButton);
-
-        c.gridx = 0;
-        c.gridy = 6;  
-        grid.add(radioHolder, c);
-
-        JTextArea stringInput = new JTextArea(10,20);
-            stringInput.setVisible(false);
-        c.gridx = 0;
-        c.gridy = 7;  
-        grid.add(stringInput, c);
-
-        JButton searchButton2 = new JButton("Search");
-            searchButton2.setVisible(false);
-        c.gridx = 0;
-        c.gridy = 8;  
-        grid.add(searchButton2, c);
 
         mainWindow.getContentPane().add(mainPanel, BorderLayout.CENTER);
-        mainWindow.pack();
+        mainWindow.pack(); //windowsize fits all contents tightly
         mainWindow.setVisible(true);
             
     }
