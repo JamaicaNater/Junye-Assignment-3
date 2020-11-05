@@ -21,6 +21,7 @@ public class GUI
     public static void main(String[] args) 
     {
         BuildGUI gui = new BuildGUI();  
+        ReviewHandler reviewHandler = new ReviewHandler();
     }
   }
 

@@ -10,7 +10,6 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-
 public class BuildGUI
 {
   JFrame mainWindow = new JFrame("Move Review Database"); // main window for the GUI
@@ -25,17 +24,26 @@ public class BuildGUI
   GridBagConstraints c = new GridBagConstraints(); // used to control the attributes of the GridBag
   JTable reviewTable; // table for holding all of the data from the database
   JScrollPane scrollPane = new JScrollPane(); // put the table inside this to give it headers and make it scrollable
-  JPanel mainQuestionHolder = new JPanel(new GridLayout(2, 1)); // to hold the main Question and combo box
+  JPanel mainQuestionHolder = new JPanel(new GridLayout(4, 1)); // to hold the main Question and combo box
   JLabel mainQuestion; //Main prompt for user label
   JComboBox userOptions = new JComboBox(); // main options for users
+  
+  JLabel posORneg = new JLabel("Choose the real class of the file", SwingConstants.CENTER);
+  JPanel radioHolder0 = new JPanel(new GridLayout(1, 4)); // holds the radio buttons side by side
+  JRadioButton posButton = new JRadioButton("Positive");
+  JRadioButton negButton = new JRadioButton("Negative"); // the text of one of the radio options
+  JRadioButton unknoButton = new JRadioButton("Unknown");
+  JButton submit = new JButton("Submit");
+  ButtonGroup group0 = new ButtonGroup();// grouping the buttons
+
   JPanel deleteByIdHolder = new JPanel(new GridLayout(3, 1)); // holds Label+TextField+SearchButton
   JLabel enterIdLabel = new JLabel(" Enter ID to delete "); // text of label for Delete by ID option
   JPanel searchReviewHolder = new JPanel(new GridBagLayout()); // radio buttons+TextBox+SearchButton
   JPanel radioHolder = new JPanel(new GridLayout(1, 2)); // holds the radio buttons sidde by side
   JRadioButton idButton = new JRadioButton("By Review ID");
+  JRadioButton stringButton = new JRadioButton("By substring"); // the text of one of the radio options
   ButtonGroup group = new ButtonGroup();
   JTextArea stringInput = new JTextArea(4,30);
-  JRadioButton stringButton = new JRadioButton("By substring"); // the text of one of the radio options
   JButton searchButton2 = new JButton("Search");
   JButton searchButton = new JButton("Search");
   JTextField inputText = new JTextField(10); 
@@ -78,14 +86,49 @@ public class BuildGUI
         mainQuestion = new JLabel(" Please choose from the options below ", SwingConstants.CENTER);
             mainQuestion.setFont(new java.awt.Font("Serif", Font.PLAIN, 20));
             mainQuestion.setForeground(Color.WHITE);
-            mainQuestionHolder.add(mainQuestion); // add to holder
-
+      
+        userOptions.addItem("");
         userOptions.addItem("1. Load new movie review collection");
         userOptions.addItem("2. Delete movie reviews from database (given its id)");
         userOptions.addItem("3. Search movie reviews in database");
         userOptions.addItem("4. Show database");
      
+        posButton.setOpaque(true);
+        posButton.setForeground(Color.WHITE);
+        posButton.setBackground(Color.BLACK);
+
+        negButton.setOpaque(true);
+        negButton.setForeground(Color.WHITE);
+        negButton.setBackground(Color.BLACK);
+
+        unknoButton.setOpaque(true);
+        unknoButton.setForeground(Color.WHITE);
+        unknoButton.setBackground(Color.BLACK);
+
+        radioHolder0.setBackground(Color.BLACK);
+
+        radioHolder0.add(posButton);
+        radioHolder0.add(negButton);
+        radioHolder0.add(unknoButton);
+        radioHolder0.add(submit);
+
+        group0.add(posButton);
+        group0.add(negButton);
+        group0.add(unknoButton);
+
+        posORneg.setFont(new Font("Serif", Font.PLAIN, 16));
+        posORneg.setOpaque(true);
+        posORneg.setForeground(Color.WHITE);
+        posORneg.setBackground(Color.BLACK);
+
+        mainQuestionHolder.add(mainQuestion); // add to holder     
         mainQuestionHolder.add(userOptions); // add to holder
+        mainQuestionHolder.add(posORneg);
+        mainQuestionHolder.add(radioHolder0);
+
+        posORneg.setVisible(false);
+        radioHolder0.setVisible(false);
+
 
         c.insets = new Insets(20,10,20,10);
         c.gridx = 0;
@@ -137,14 +180,12 @@ public class BuildGUI
         c.gridy = 0;
 
         searchReviewHolder.add(radioHolder, c);
-
-        
+     
         c.gridx = 0;
         c.gridy = 1;
 
         searchReviewHolder.add(stringInput, c);
 
-        
         searchButton2.setPreferredSize(new Dimension(130,35));
         c.gridx = 0;
         c.gridy = 2;
@@ -188,24 +229,101 @@ public class BuildGUI
             {
                 public void itemStateChanged(ItemEvent e)
                 {
-                    if(e.getItem().equals("1. Load new movie review collection"))
+                    if(e.getItem().equals("1. Load new movie review collection") && e.getStateChange() == ItemEvent.SELECTED)
                     {
-                        
+                      deleteByIdHolder.setVisible(false);
+                      searchReviewHolder.setVisible(false);
+                      posORneg.setVisible(true);
+                      radioHolder0.setVisible(true);
+
+                     /* posORneg.setText("Would you like to input a file or a folder?");
+                      posButton.setText("File");
+                      negButton.setText("Folder");
+                      unknoButton.setVisible(false);*/
+
+                              int check;
+                              JFileChooser fileChooser = new JFileChooser(new File(System.getProperty("user.dir")));
+                              fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+                              check = fileChooser.showOpenDialog(mainWindow);
+                             // if(check == JFileChooser.APPROVE_OPTION)
+                             // {
+                                  //posORneg.setText("Choose the real class of the file");
+                                  //posButton.setText("Positive");
+                                  //negButton.setText("Negative");
+                                  //posButton.removeActionListener(this);
+                                  //negButton.removeActionListener(this);
+                             //     unknoButton.setVisible(true);
+                             //}
+
+                      posButton.addActionListener(
+                        new ActionListener()
+                            {
+                          public void actionPerformed(ActionEvent e)
+                              {
+                                
+                              }
+                            }
+                      );
+                              submit.addActionListener(
+                                new ActionListener()
+                                {
+                                    public void actionPerformed(ActionEvent e)
+                                    {
+                                        if(check == JFile.APPROVE_OPTION && )
+                                    }
+                               }
+                              );
+
+                   /* negButton.addActionListener(
+                        new ActionListener()
+                        {
+                          public void actionPerformed(ActionEvent e)
+                          {
+                              int check;
+                              JFileChooser fileChooser = new JFileChooser(new File(System.getProperty("user.dir")));
+                              fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                              check = fileChooser.showOpenDialog(mainWindow);
+
+                              if(check == JFileChooser.APPROVE_OPTION)
+                              {
+                                  posORneg.setText("Choose the real class of the folder");
+                                  posButton.setText("Positive");
+                                  negButton.setText("Negative");
+                                  unknoButton.setVisible(true);
+                              }
+                              submit.addActionListener(
+                                new ActionListener()
+                                {
+                                    public void actionPerformed(ActionEvent e)
+                                    {
+                                        System.out.println(fileChooser.getSelectedFile());
+                                    }
+                                }
+                              );
+                          }
+                        }
+                      );*/
+
+
+
+
                     }
                     else if(e.getItem().equals("2. Delete movie reviews from database (given its id)"))
                     {
                         deleteByIdHolder.setVisible(true);
                         searchReviewHolder.setVisible(false);
+                        posORneg.setVisible(false);
+                        radioHolder0.setVisible(false);
                     }
                     else if(e.getItem().equals("3. Search movie reviews in database"))
                     {
                         deleteByIdHolder.setVisible(false);
                         searchReviewHolder.setVisible(true);
+                        posORneg.setVisible(false);
+                      radioHolder0.setVisible(false);
                     }
                 }
             }
-
         );
-  }
-
+    }
 }
