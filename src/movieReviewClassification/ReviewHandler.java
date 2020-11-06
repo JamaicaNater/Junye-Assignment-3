@@ -1,4 +1,4 @@
-package movieReviewClassification;
+package src.movieReviewClassification;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ public class ReviewHandler extends AbstractReviewHandler
 
 
    /**
-   *@param filepath input by the user on cmd line
+   *@param filePath input by the user on cmd line
    *@param realClass input by user on cmd line
    */
     public void loadReviews(String filePath, int realClass) 

@@ -1,4 +1,4 @@
-package movieReviewClassification;
+package src.movieReviewClassification;
 
 import sentiment.Sentiment;
 
