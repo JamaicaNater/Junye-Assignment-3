@@ -1,5 +1,4 @@
-
-package src.movieReviewClassification;
+package movieReviewClassification;
 
 import java.io.IOException;
 import java.util.Scanner;
@@ -14,11 +13,6 @@ import javax.swing.table.TableColumn;
 
 public class GUI_Interface
 {
-    public static void main(String[] args)
-    {
-        GUI_Interface gui = new GUI_Interface();
-    }
-
 /*---------------------------------------------Main Section-----------------------------------------------------------*/
     JFrame mainWindow = new JFrame("Move Review Database"); // main window for the GUI
     JPanel mainPanel = new JPanel(new BorderLayout()); // specific layout within the mainWindow
@@ -26,7 +20,6 @@ public class GUI_Interface
                                                                         "Movie Review Preview",
                                                                         "Predicted Class",
                                                                         "Real Class"};
-    Object[][] data = {};
     JLabel title = new JLabel("Movie Review Database", SwingConstants.CENTER); // Title for the GUI
     JPanel grid = new JPanel(new GridBagLayout()); // a flexible grid to go in the far left panel
     GridBagConstraints c = new GridBagConstraints(); // used to control the attributes of the GridBag
@@ -67,6 +60,14 @@ public class GUI_Interface
     {
         // Review handler created upon initialization
         ReviewHandler reviewHandler = new ReviewHandler();
+        String dataBasePath = System.getProperty("user.dir") + System.getProperty("file.separator") + reviewHandler.DATA_FILE_NAME;
+        File checkFileExist = new File(dataBasePath); //load data path to database to check if is currently exists
+
+          if(checkFileExist.exists())
+          {
+            reviewHandler.loadSerialDB();
+          }
+            setTable(reviewHandler);
 
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -82,26 +83,6 @@ public class GUI_Interface
 
         grid.setBackground(Color.BLACK);
 
-        for (int i : reviewHandler.database.keySet())
-        {
-            data[i][0] = "test";
-            data[i][1] = reviewHandler.database.get(i).getText50();
-            data[i][2]= reviewHandler.database.get(i).getPredictedClass();
-            data[i][3] = reviewHandler.database.get(i).getRealClass();
-        }
-
-        reviewTable = new JTable(data, tableColumnNames);// table to hold data
-        reviewTable.setFont(new Font("Serif", Font.PLAIN, 16));
-        reviewTable.setOpaque(true);
-        reviewTable.setForeground(Color.WHITE);
-        reviewTable.setBackground(Color.BLACK);
-        scrollPane.setViewportView(reviewTable);
-        scrollPane.createVerticalScrollBar();
-        scrollPane.getViewport().setBackground(Color.BLACK);
-        scrollPane.getViewport().setForeground(Color.WHITE);
-        mainPanel.add(grid, BorderLayout.WEST);
-        mainPanel.add(scrollPane, BorderLayout.CENTER);
-
         mainQuestionHolder.setOpaque(true);
         mainQuestionHolder.setForeground(Color.WHITE);
         mainQuestionHolder.setBackground(Color.BLACK);
@@ -114,7 +95,7 @@ public class GUI_Interface
         userOptions.addItem("1. Load new movie review collection");
         userOptions.addItem("2. Delete movie reviews from database (given its id)");
         userOptions.addItem("3. Search movie reviews in database");
-        userOptions.addItem("4. Show database");
+        //userOptions.addItem("4. Show database");
 
         posButton.setOpaque(true);
         posButton.setForeground(Color.WHITE);
@@ -237,13 +218,7 @@ public class GUI_Interface
         mainWindow.pack(); //windowsize fits all contents tightly
         mainWindow.setVisible(true);
 
-        searchButton.addActionListener
-        (
-            e -> inputText.setText("Done!")
-        );
-
-        userOptions.addItemListener
-        (
+        userOptions.addItemListener(
         new ItemListener()
             {
                 public void itemStateChanged(ItemEvent e)
@@ -266,7 +241,7 @@ public class GUI_Interface
                         {
                             String filepath = fileChooser.getSelectedFile().getPath();
                             submit.addActionListener
-                            (
+                            ( 
                                 e1 ->
                                 {
                                     int classif = -1;
@@ -286,8 +261,9 @@ public class GUI_Interface
                                     System.out.println(filepath);
 
                                     reviewHandler.loadReviews(filepath, classif);
+                                    setTable(reviewHandler);
+                                    reviewHandler.saveSerialDB();
                                 }
-
                             );
                         }
                     }
@@ -308,8 +284,9 @@ public class GUI_Interface
                                     }
                                     catch (NumberFormatException e1)
                                     {
-                                        System.out.println("Input was not a number");
+                                        inputText.setText("Input was not a number");
                                     }
+                                    setTable(reviewHandler);
                                 }
                             );
                     }
@@ -322,44 +299,63 @@ public class GUI_Interface
 
 
                     }
-                    else if(e.getItem().equals("4. Show database"))
-                    {
-                        reviewTable.setVisible(true);
-                        scrollPane.setVisible(true);
-
-                        System.out.println("|Review ID|Review Preview                                         |Predicted Class |Real Class|"); // outputting in a table format // this might just be for our use because I dont think it is necessary to output them all
-                        System.out.println("===============================================================================================");
-                        for(Integer it : reviewHandler.database.keySet()) //iterating through using the keys to then access the methods within each object
-                        {
-                            System.out.format("| %8d", it); // setting the width of the output to 8
-                            System.out.print( "| " + reviewHandler.database.get(it).getText50() + "...");
-                            if(reviewHandler.database.get(it).getPredictedClass() == 0)
-                            {
-                                System.out.print( " | " + "Negative      " );
-                            }
-                            else
-                            {
-                                System.out.print( " | " + "Positive      " );
-                            }
-
-                            if(reviewHandler.database.get(it).getRealClass() == 0)
-                            {
-                                System.out.format( " | " + "Negative" + " |%n");
-                            }
-                            else if (reviewHandler.database.get(it).getRealClass() == 1)
-                            {
-                                System.out.format( " | " + "Positive" + " |%n");
-                            }
-                            else
-                            {
-                                System.out.format( " | " + "Unknown" + "  |%n");
-                            }
-                        }
-                    }
+                   // else if(e.getItem().equals("4. Show database"))
+                   // {
+                   //     setTable(reviewHandler);
+                   // }
 
                 }
             }
         );
+    }
+
+    public void setTable(ReviewHandler reviewHandler)
+    {
+        reviewTable.setVisible(true);
+        scrollPane.setVisible(true);
+        Object[][] data = new Object[reviewHandler.database.size()][4];
+
+        for (int i : reviewHandler.database.keySet())
+        {
+            data[i][0] = reviewHandler.database.get(i).getID();
+            data[i][1] = reviewHandler.database.get(i).getText50();
+
+            if(reviewHandler.database.get(i).getPredictedClass() == 0)
+            {
+                data[i][2] = "Negative";
+            }
+            else
+            {
+                data[i][2] = "Positive";  
+            }
+            if(reviewHandler.database.get(i).getRealClass() == 0)
+            {
+                data[i][3] = "Negative";
+            }
+            else if(reviewHandler.database.get(i).getRealClass() == 1)
+            {
+                data[i][3] = "Positive";  
+            }
+            else
+            {
+                data[i][3] = "Unknown";
+            }
+        }
+
+        reviewTable = new JTable(data, tableColumnNames);
+        reviewTable.setDefaultEditor(Object.class, null);
+        reviewTable.setRowHeight(25);
+        reviewTable.getColumnModel().getColumn(1).setPreferredWidth(200);
+        reviewTable.setFont(new Font("Serif", Font.PLAIN, 18));
+        reviewTable.setOpaque(true);
+        reviewTable.setForeground(Color.WHITE);
+        reviewTable.setBackground(Color.BLACK);
+        scrollPane.setViewportView(reviewTable);
+        scrollPane.createVerticalScrollBar();
+        scrollPane.getViewport().setBackground(Color.BLACK);
+        scrollPane.getViewport().setForeground(Color.WHITE);
+        mainPanel.add(grid, BorderLayout.WEST);
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
     }
 
 }
