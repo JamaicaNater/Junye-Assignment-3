@@ -9,14 +9,16 @@ import java.util.List;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 
 public class GUI_Interface
 {
     public static void main(String[] args)
     {
         GUI_Interface gui = new GUI_Interface();
-        ReviewHandler reviewHandler = new ReviewHandler();
     }
+
 /*---------------------------------------------Main Section-----------------------------------------------------------*/
     JFrame mainWindow = new JFrame("Move Review Database"); // main window for the GUI
     JPanel mainPanel = new JPanel(new BorderLayout()); // specific layout within the mainWindow
@@ -28,7 +30,7 @@ public class GUI_Interface
     JLabel title = new JLabel("Movie Review Database", SwingConstants.CENTER); // Title for the GUI
     JPanel grid = new JPanel(new GridBagLayout()); // a flexible grid to go in the far left panel
     GridBagConstraints c = new GridBagConstraints(); // used to control the attributes of the GridBag
-    JTable reviewTable; // table for holding all of the data from the database
+    JTable reviewTable = new JTable(); // table for holding all of the data from the database
     JScrollPane scrollPane = new JScrollPane(); // put the table inside this to give it headers and make it scrollable
     JPanel mainQuestionHolder = new JPanel(new GridLayout(4, 1)); // to hold the main Question and combo box
     JLabel mainQuestion; //Main prompt for user label
@@ -63,6 +65,9 @@ public class GUI_Interface
 
     GUI_Interface()
     {
+        // Review handler created upon initialization
+        ReviewHandler reviewHandler = new ReviewHandler();
+
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         mainPanel.setOpaque(true);
@@ -77,17 +82,23 @@ public class GUI_Interface
 
         grid.setBackground(Color.BLACK);
 
+        for (int i : reviewHandler.database.keySet())
+        {
+            data[i][0] = "test";
+            data[i][1] = reviewHandler.database.get(i).getText50();
+            data[i][2]= reviewHandler.database.get(i).getPredictedClass();
+            data[i][3] = reviewHandler.database.get(i).getRealClass();
+        }
+
         reviewTable = new JTable(data, tableColumnNames);// table to hold data
-            reviewTable.setFont(new Font("Serif", Font.PLAIN, 16));
-            reviewTable.setOpaque(true);
-            reviewTable.setForeground(Color.WHITE);
-            reviewTable.setBackground(Color.BLACK);
-
+        reviewTable.setFont(new Font("Serif", Font.PLAIN, 16));
+        reviewTable.setOpaque(true);
+        reviewTable.setForeground(Color.WHITE);
+        reviewTable.setBackground(Color.BLACK);
         scrollPane.setViewportView(reviewTable);
-            scrollPane.createVerticalScrollBar();
-            scrollPane.getViewport().setBackground(Color.BLACK);
-            scrollPane.getViewport().setForeground(Color.WHITE);
-
+        scrollPane.createVerticalScrollBar();
+        scrollPane.getViewport().setBackground(Color.BLACK);
+        scrollPane.getViewport().setForeground(Color.WHITE);
         mainPanel.add(grid, BorderLayout.WEST);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
 
@@ -249,39 +260,36 @@ public class GUI_Interface
                         JFileChooser fileChooser = new JFileChooser(new File(System.getProperty("user.dir")));
                         fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
                         check = fileChooser.showOpenDialog(mainWindow);
+
+                        // We only allow the Button to do something if we recieve a filepath from j file choser o
                         if(check == JFileChooser.APPROVE_OPTION)
                         {
-                            //posORneg.setText("Choose the real class of the file");
-                            //posButton.setText("Positive");
-                            //negButton.setText("Negative");
-                            //posButton.removeActionListener(this);
-                            //negButton.removeActionListener(this);
-                            //unknoButton.setVisible(true);
+                            String filepath = fileChooser.getSelectedFile().getPath();
+                            submit.addActionListener
+                            (
+                                e1 ->
+                                {
+                                    int classif = -1;
+
+                                    if (negButton.isSelected())
+                                    {
+                                        classif = 0;
+                                    }
+                                    else if (posButton.isSelected())
+                                    {
+                                        classif = 1;
+                                    }
+                                    else if (negButton.isSelected())
+                                    {
+                                        classif = 2;
+                                    }
+                                    System.out.println(filepath);
+
+                                    reviewHandler.loadReviews(filepath, classif);
+                                }
+
+                            );
                         }
-
-                        submit.addActionListener
-                        (
-                            e1 ->
-                            {
-                                int state = -1;
-
-                                if (negButton.isSelected())
-                                {
-                                    state = 0;
-                                }
-                                else if (posButton.isSelected())
-                                {
-                                    state = 1;
-                                }
-                                else if (negButton.isSelected())
-                                {
-                                    state = 2;
-                                }
-
-
-                            }
-                        );
-
                     }
                     else if(e.getItem().equals("2. Delete movie reviews from database (given its id)"))
                     {
@@ -289,14 +297,66 @@ public class GUI_Interface
                             searchReviewHolder.setVisible(false);
                             posORneg.setVisible(false);
                             radioHolder0.setVisible(false);
+
+                            searchButton.addActionListener
+                            (
+                                e2 ->
+                                {
+                                    try
+                                    {
+                                        reviewHandler.deleteReview(Integer.parseInt(inputText.getText()));
+                                    }
+                                    catch (NumberFormatException e1)
+                                    {
+                                        System.out.println("Input was not a number");
+                                    }
+                                }
+                            );
                     }
                     else if(e.getItem().equals("3. Search movie reviews in database"))
                     {
                             deleteByIdHolder.setVisible(false);
                             searchReviewHolder.setVisible(true);
                             posORneg.setVisible(false);
-                        radioHolder0.setVisible(false);
+                            radioHolder0.setVisible(false);
+
+
                     }
+                    else if(e.getItem().equals("4. Show database"))
+                    {
+                        reviewTable.setVisible(true);
+                        scrollPane.setVisible(true);
+
+                        System.out.println("|Review ID|Review Preview                                         |Predicted Class |Real Class|"); // outputting in a table format // this might just be for our use because I dont think it is necessary to output them all
+                        System.out.println("===============================================================================================");
+                        for(Integer it : reviewHandler.database.keySet()) //iterating through using the keys to then access the methods within each object
+                        {
+                            System.out.format("| %8d", it); // setting the width of the output to 8
+                            System.out.print( "| " + reviewHandler.database.get(it).getText50() + "...");
+                            if(reviewHandler.database.get(it).getPredictedClass() == 0)
+                            {
+                                System.out.print( " | " + "Negative      " );
+                            }
+                            else
+                            {
+                                System.out.print( " | " + "Positive      " );
+                            }
+
+                            if(reviewHandler.database.get(it).getRealClass() == 0)
+                            {
+                                System.out.format( " | " + "Negative" + " |%n");
+                            }
+                            else if (reviewHandler.database.get(it).getRealClass() == 1)
+                            {
+                                System.out.format( " | " + "Positive" + " |%n");
+                            }
+                            else
+                            {
+                                System.out.format( " | " + "Unknown" + "  |%n");
+                            }
+                        }
+                    }
+
                 }
             }
         );
