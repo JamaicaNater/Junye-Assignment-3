@@ -1,4 +1,4 @@
-package src.movieReviewClassification;
+package movieReviewClassification;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -13,7 +13,7 @@ import java.util.Scanner;
  */
 
 //a class for processing movie review files and maintaining a database of those files
-public class ReviewHandler extends AbstractReviewHandler 
+public class ReviewHandler extends AbstractReviewHandler
 {
     public ReviewHandler() 
     {
@@ -38,7 +38,7 @@ public class ReviewHandler extends AbstractReviewHandler
 
 
    /**
-   *@param filePath input by the user on cmd line
+   *@param filepath input by the user on cmd line
    *@param realClass input by user on cmd line
    */
     public void loadReviews(String filePath, int realClass) 
@@ -110,6 +110,7 @@ public class ReviewHandler extends AbstractReviewHandler
 
         System.out.println(totalCorrectClassified + " out of " + count + " correctly classified.");
 
+
     }
 
     /**
@@ -143,15 +144,10 @@ public class ReviewHandler extends AbstractReviewHandler
    */
     public void deleteReview(int id) 
     {
-    	System.out.println("Deleting... ");
 
         if (database.containsKey(id))
         {
             database.remove(id);
-        }
-        else
-        {
-        	System.out.println("ID does not exist in database...");
         }
     }
 

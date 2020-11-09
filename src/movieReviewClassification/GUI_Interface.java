@@ -11,7 +11,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
-public class GUI_Interface
+public class GUI_Interface implements ItemListener, ActionListener
 {
 /*---------------------------------------------Main Section-----------------------------------------------------------*/
     JFrame mainWindow = new JFrame("Move Review Database"); // main window for the GUI
@@ -52,14 +52,16 @@ public class GUI_Interface
     ButtonGroup group = new ButtonGroup();
     JTextArea stringInput = new JTextArea(4,30);
     JButton searchButton2 = new JButton("Search");
-    JButton searchButton = new JButton("Search");
+    JButton searchButton = new JButton("Delete");
     JTextField inputText = new JTextField(10);
     JLabel blankLabel = new JLabel(""); // blank label added to the button to push all of the items up towards the top on teh West Side
+    ReviewHandler reviewHandler = new ReviewHandler();
+    String filepath;
+    JFileChooser fileChooser;
 
     GUI_Interface()
     {
         // Review handler created upon initialization
-        ReviewHandler reviewHandler = new ReviewHandler();
         String dataBasePath = System.getProperty("user.dir") + System.getProperty("file.separator") + reviewHandler.DATA_FILE_NAME;
         File checkFileExist = new File(dataBasePath); //load data path to database to check if is currently exists
 
@@ -95,7 +97,6 @@ public class GUI_Interface
         userOptions.addItem("1. Load new movie review collection");
         userOptions.addItem("2. Delete movie reviews from database (given its id)");
         userOptions.addItem("3. Search movie reviews in database");
-        //userOptions.addItem("4. Show database");
 
         posButton.setOpaque(true);
         posButton.setForeground(Color.WHITE);
@@ -133,7 +134,6 @@ public class GUI_Interface
         posORneg.setVisible(false);
         radioHolder0.setVisible(false);
 
-
         c.insets = new Insets(20,10,20,10);
         c.gridx = 0;
         c.gridy = 0;
@@ -152,7 +152,6 @@ public class GUI_Interface
         deleteByIdHolder.add(enterIdLabel); // add to holder
 
         deleteByIdHolder.add(inputText); // add to holder
-
 
         deleteByIdHolder.add(searchButton); // add to holder
 
@@ -218,129 +217,43 @@ public class GUI_Interface
         mainWindow.pack(); //windowsize fits all contents tightly
         mainWindow.setVisible(true);
 
-        userOptions.addItemListener(
-        new ItemListener()
-            {
-                public void itemStateChanged(ItemEvent e)
-                {
-                    if(e.getItem().equals("1. Load new movie review collection") && e.getStateChange() == ItemEvent.SELECTED)
-                    {
-                        deleteByIdHolder.setVisible(false);
-                        searchReviewHolder.setVisible(false);
-                        posORneg.setVisible(true);
-                        radioHolder0.setVisible(true);
-
-
-                        int check;
-                        JFileChooser fileChooser = new JFileChooser(new File(System.getProperty("user.dir")));
-                        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-                        check = fileChooser.showOpenDialog(mainWindow);
-
-                        // We only allow the Button to do something if we recieve a filepath from j file choser o
-                        if(check == JFileChooser.APPROVE_OPTION)
-                        {
-                            String filepath = fileChooser.getSelectedFile().getPath();
-                            submit.addActionListener
-                            ( 
-                                e1 ->
-                                {
-                                    int classif = -1;
-
-                                    if (negButton.isSelected())
-                                    {
-                                        classif = 0;
-                                    }
-                                    else if (posButton.isSelected())
-                                    {
-                                        classif = 1;
-                                    }
-                                    else if (negButton.isSelected())
-                                    {
-                                        classif = 2;
-                                    }
-                                    System.out.println(filepath);
-
-                                    reviewHandler.loadReviews(filepath, classif);
-                                    setTable(reviewHandler);
-                                    reviewHandler.saveSerialDB();
-                                }
-                            );
-                        }
-                    }
-                    else if(e.getItem().equals("2. Delete movie reviews from database (given its id)"))
-                    {
-                            deleteByIdHolder.setVisible(true);
-                            searchReviewHolder.setVisible(false);
-                            posORneg.setVisible(false);
-                            radioHolder0.setVisible(false);
-
-                            searchButton.addActionListener
-                            (
-                                e2 ->
-                                {
-                                    try
-                                    {
-                                        reviewHandler.deleteReview(Integer.parseInt(inputText.getText()));
-                                    }
-                                    catch (NumberFormatException e1)
-                                    {
-                                        inputText.setText("Input was not a number");
-                                    }
-                                    setTable(reviewHandler);
-                                }
-                            );
-                    }
-                    else if(e.getItem().equals("3. Search movie reviews in database"))
-                    {
-                            deleteByIdHolder.setVisible(false);
-                            searchReviewHolder.setVisible(true);
-                            posORneg.setVisible(false);
-                            radioHolder0.setVisible(false);
-
-
-                    }
-                   // else if(e.getItem().equals("4. Show database"))
-                   // {
-                   //     setTable(reviewHandler);
-                   // }
-
-                }
-            }
-        );
+        userOptions.addItemListener(this);
+        submit.addActionListener(this);
     }
 
-    public void setTable(ReviewHandler reviewHandler)
+public void setTable(ReviewHandler reviewHandler)
+{
+    reviewTable.setVisible(true);
+    scrollPane.setVisible(true);
+    Object[][] data = new Object[reviewHandler.database.size()][4];
+    int j = 0;
+    for (int i : reviewHandler.database.keySet())
     {
-        reviewTable.setVisible(true);
-        scrollPane.setVisible(true);
-        Object[][] data = new Object[reviewHandler.database.size()][4];
+        data[j][0] = reviewHandler.database.get(i).getID();
+        data[j][1] = reviewHandler.database.get(i).getText50();
 
-        for (int i : reviewHandler.database.keySet())
+        if(reviewHandler.database.get(i).getPredictedClass() == 0)
         {
-            data[i][0] = reviewHandler.database.get(i).getID();
-            data[i][1] = reviewHandler.database.get(i).getText50();
-
-            if(reviewHandler.database.get(i).getPredictedClass() == 0)
-            {
-                data[i][2] = "Negative";
-            }
-            else
-            {
-                data[i][2] = "Positive";  
-            }
-            if(reviewHandler.database.get(i).getRealClass() == 0)
-            {
-                data[i][3] = "Negative";
-            }
-            else if(reviewHandler.database.get(i).getRealClass() == 1)
-            {
-                data[i][3] = "Positive";  
-            }
-            else
-            {
-                data[i][3] = "Unknown";
-            }
+            data[j][2] = "Negative";
         }
+        else
+        {
+            data[j][2] = "Positive";  
+        }
+        if(reviewHandler.database.get(i).getRealClass() == 0)
+        {
+            data[j][3] = "Negative";
+        }
+        else if(reviewHandler.database.get(i).getRealClass() == 1)
+        {
+            data[j][3] = "Positive";  
+        }
+        else
+        {
+            data[j][3] = "Unknown";
+        }
+        j++;
+    }
 
         reviewTable = new JTable(data, tableColumnNames);
         reviewTable.setDefaultEditor(Object.class, null);
@@ -358,4 +271,83 @@ public class GUI_Interface
         mainPanel.add(scrollPane, BorderLayout.CENTER);
     }
 
+public void itemStateChanged(ItemEvent e)
+{
+    if(e.getItem().equals("1. Load new movie review collection") && e.getStateChange() == ItemEvent.SELECTED)
+    {
+        deleteByIdHolder.setVisible(false);
+        searchReviewHolder.setVisible(false);
+        posORneg.setVisible(true);
+        radioHolder0.setVisible(true);
+
+
+        int check;
+        fileChooser = new JFileChooser(new File(System.getProperty("user.dir")));
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        check = fileChooser.showOpenDialog(mainWindow);
+
+        // We only allow the Button to do something if we recieve a filepath from j file choser o
+        if(check == JFileChooser.APPROVE_OPTION)
+        {
+            filepath = fileChooser.getSelectedFile().getPath();
+            
+        }
+    }
+    else if(e.getItem().equals("2. Delete movie reviews from database (given its id)"))
+    {
+            deleteByIdHolder.setVisible(true);
+            searchReviewHolder.setVisible(false);
+            posORneg.setVisible(false);
+            radioHolder0.setVisible(false);
+
+            searchButton.addActionListener
+            (
+                e2 ->
+                {
+                    try
+                    {
+                        reviewHandler.deleteReview(Integer.parseInt(inputText.getText()));
+                        inputText.setText("Done!");
+                    }
+                    catch (NumberFormatException e1)
+                    {
+                        inputText.setText("Input was not a number");
+                    }
+                    setTable(reviewHandler);
+                    reviewHandler.saveSerialDB();
+                }
+            );
+    }
+    else if(e.getItem().equals("3. Search movie reviews in database"))
+    {
+            deleteByIdHolder.setVisible(false);
+            searchReviewHolder.setVisible(true);
+            posORneg.setVisible(false);
+            radioHolder0.setVisible(false);
+    }
+}
+
+public void actionPerformed(ActionEvent e)
+{
+    int classif = -1;
+
+    if (negButton.isSelected())
+    {
+        classif = 0;
+    }
+    else if (posButton.isSelected())
+    {
+        classif = 1;
+    }
+    else if (negButton.isSelected())
+    {
+        classif = 2;
+    }
+
+    System.out.println(filepath);
+
+    reviewHandler.loadReviews(filepath, classif);
+    setTable(reviewHandler);
+    reviewHandler.saveSerialDB();
+}
 }
