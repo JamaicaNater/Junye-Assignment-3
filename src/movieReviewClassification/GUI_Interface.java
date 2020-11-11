@@ -219,6 +219,7 @@ public class GUI_Interface implements ItemListener, ActionListener
 
         userOptions.addItemListener(this);
         submit.addActionListener(this);
+        searchButton.addActionListener(this);
     }
 
 public void setTable(ReviewHandler reviewHandler)
@@ -300,23 +301,8 @@ public void itemStateChanged(ItemEvent e)
             posORneg.setVisible(false);
             radioHolder0.setVisible(false);
 
-            searchButton.addActionListener
-            (
-                e2 ->
-                {
-                    try
-                    {
-                        reviewHandler.deleteReview(Integer.parseInt(inputText.getText()));
-                        inputText.setText("Done!");
-                    }
-                    catch (NumberFormatException e1)
-                    {
-                        inputText.setText("Input was not a number");
-                    }
-                    setTable(reviewHandler);
-                    reviewHandler.saveSerialDB();
-                }
-            );
+            
+
     }
     else if(e.getItem().equals("3. Search movie reviews in database"))
     {
@@ -329,25 +315,48 @@ public void itemStateChanged(ItemEvent e)
 
 public void actionPerformed(ActionEvent e)
 {
-    int classif = -1;
-
-    if (negButton.isSelected())
+    if(e.getSource() == submit)
     {
-        classif = 0;
+        int classif = -1;
+
+        if (negButton.isSelected())
+        {
+            classif = 0;
+        }
+        else if (posButton.isSelected())
+        {
+            classif = 1;
+        }
+        else if (negButton.isSelected())
+        {
+            classif = 2;
+        }
+
+        System.out.println(filepath);
+
+        reviewHandler.loadReviews(filepath, classif);
+        setTable(reviewHandler);
+        reviewHandler.saveSerialDB();
     }
-    else if (posButton.isSelected())
+    else if(e.getSource() == searchButton)
     {
-        classif = 1;
-    }
-    else if (negButton.isSelected())
-    {
-        classif = 2;
+        try
+        {
+            reviewHandler.deleteReview(Integer.parseInt(inputText.getText()));
+            inputText.setText("Done!");
+            setTable(reviewHandler);
+            reviewHandler.saveSerialDB();
+        }
+        catch (NumberFormatException e1)
+        {
+            inputText.setText("Input was not a number");
+        }
     }
 
-    System.out.println(filepath);
-
-    reviewHandler.loadReviews(filepath, classif);
-    setTable(reviewHandler);
-    reviewHandler.saveSerialDB();
 }
 }
+          
+
+                
+                
+            
