@@ -143,6 +143,7 @@ public class GUI_Interface implements ItemListener, ActionListener
 
         grid.add(mainQuestionHolder, c); // add holder to grid
         grid.add(refreshButton);
+        refreshButton.addActionListener(this);
 
         c.insets = new Insets(0,0,0,0); // reseting the padding value
 
@@ -229,6 +230,11 @@ public class GUI_Interface implements ItemListener, ActionListener
 
 public void setTable(ReviewHandler reviewHandler, HashMap<Integer, MovieReview> db)
 {
+    try {
+        reviewHandler.threadList.get("Load Database").join();
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
     reviewTable.setVisible(true);
     scrollPane.setVisible(true);
     Object[][] data = new Object[reviewHandler.database.size()][4];
