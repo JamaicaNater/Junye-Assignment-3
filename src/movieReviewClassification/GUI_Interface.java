@@ -1,4 +1,4 @@
-package src.movieReviewClassification;
+package movieReviewClassification;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -29,7 +29,6 @@ public class GUI_Interface implements ItemListener, ActionListener
     JPanel mainQuestionHolder = new JPanel(new GridLayout(4, 1)); // to hold the main Question and combo box
     JLabel mainQuestion; //Main prompt for user label
     JComboBox userOptions = new JComboBox(); // main options for users
-    JButton refreshButton = new JButton("Refresh");
 
 
 /*---------------------------------------Choosing Review Type Section-------------------------------------------------*/
@@ -71,7 +70,6 @@ public class GUI_Interface implements ItemListener, ActionListener
           {
             reviewHandler.loadSerialDB();
           }
-            setTable(reviewHandler, (HashMap<Integer, MovieReview>) reviewHandler.database);
 
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -142,8 +140,6 @@ public class GUI_Interface implements ItemListener, ActionListener
         c.weighty = 0;
 
         grid.add(mainQuestionHolder, c); // add holder to grid
-        grid.add(refreshButton);
-        refreshButton.addActionListener(this);
 
         c.insets = new Insets(0,0,0,0); // reseting the padding value
 
@@ -216,6 +212,7 @@ public class GUI_Interface implements ItemListener, ActionListener
         c.weighty = .5;
 
         grid.add(blankLabel, c);
+        paintTable(setTable(reviewHandler, (HashMap<Integer, MovieReview>) reviewHandler.database));
 
         mainWindow.getContentPane().add(mainPanel, BorderLayout.CENTER);
         mainWindow.pack(); //windowsize fits all contents tightly
@@ -228,15 +225,8 @@ public class GUI_Interface implements ItemListener, ActionListener
         idButton.addActionListener(this);
     }
 
-public void setTable(ReviewHandler reviewHandler, HashMap<Integer, MovieReview> db)
-{
-    try {
-        reviewHandler.threadList.get("Load Database").join();
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-    }
-    reviewTable.setVisible(true);
-    scrollPane.setVisible(true);
+public Object[][] setTable(ReviewHandler reviewHandler, HashMap<Integer, MovieReview> db)
+{  
     Object[][] data = new Object[reviewHandler.database.size()][4];
     int j = 0;
     for (int i : db.keySet())
@@ -266,40 +256,47 @@ public void setTable(ReviewHandler reviewHandler, HashMap<Integer, MovieReview> 
         }
         j++;
     }
-
-        reviewTable = new JTable(data, tableColumnNames);
-        reviewTable.setDefaultEditor(Object.class, null);
-        reviewTable.setRowHeight(25);
-        reviewTable.getColumnModel().getColumn(1).setPreferredWidth(200);
-        reviewTable.setFont(new Font("Serif", Font.PLAIN, 18));
-        reviewTable.setOpaque(true);
-        reviewTable.setForeground(Color.WHITE);
-        reviewTable.setBackground(Color.BLACK);
-        scrollPane.setViewportView(reviewTable);
-        scrollPane.createVerticalScrollBar();
-        scrollPane.getViewport().setBackground(Color.BLACK);
-        scrollPane.getViewport().setForeground(Color.WHITE);
-        mainPanel.add(grid, BorderLayout.WEST);
-        mainPanel.add(scrollPane, BorderLayout.CENTER);
+    return data;
+        
     }
+
+public void paintTable(Object[][] data)
+{
+	reviewTable = new JTable(data, tableColumnNames);
+    reviewTable.setDefaultEditor(Object.class, null);
+    reviewTable.setRowHeight(25);
+    reviewTable.setVisible(true);
+    reviewTable.getColumnModel().getColumn(1).setPreferredWidth(200);
+    reviewTable.setFont(new Font("Serif", Font.PLAIN, 18));
+    reviewTable.setOpaque(true);
+    reviewTable.setForeground(Color.WHITE);
+    reviewTable.setBackground(Color.BLACK);
+    scrollPane.setViewportView(reviewTable);
+    scrollPane.createVerticalScrollBar();
+    scrollPane.getViewport().setBackground(Color.BLACK);
+    scrollPane.getViewport().setForeground(Color.WHITE);
+    mainPanel.add(grid, BorderLayout.WEST);
+    mainPanel.add(scrollPane, BorderLayout.CENTER);
+}
 
 public void itemStateChanged(ItemEvent e)
 {
     if (e.getItem().equals("") && e.getStateChange() == ItemEvent.SELECTED)
     {
+    	setTable(reviewHandler, (HashMap<Integer, MovieReview>) reviewHandler.database);
         deleteByIdHolder.setVisible(false);
         searchReviewHolder.setVisible(false);
         posORneg.setVisible(false);
         radioHolder0.setVisible(false);
-        refreshButton.setVisible(true);
     }
     if(e.getItem().equals("1. Load new movie review collection") && e.getStateChange() == ItemEvent.SELECTED)
     {
+    	setTable(reviewHandler, (HashMap<Integer, MovieReview>) reviewHandler.database);
         deleteByIdHolder.setVisible(false);
         searchReviewHolder.setVisible(false);
         posORneg.setVisible(true);
         radioHolder0.setVisible(true);
-        refreshButton.setVisible(false);
+        submit.setVisible(false);
 
 
         int check;
@@ -311,30 +308,34 @@ public void itemStateChanged(ItemEvent e)
         if(check == JFileChooser.APPROVE_OPTION)
         {
             filepath = fileChooser.getSelectedFile().getPath();
+            submit.setVisible(true);
             
         }
     }
     else if(e.getItem().equals("2. Delete movie reviews from database (given its id)"))
     {
+    	setTable(reviewHandler, (HashMap<Integer, MovieReview>) reviewHandler.database);
             deleteByIdHolder.setVisible(true);
             searchReviewHolder.setVisible(false);
             posORneg.setVisible(false);
             radioHolder0.setVisible(false);
-            refreshButton.setVisible(false);
 
     }
     else if(e.getItem().equals("3. Search movie reviews in database"))
     {
+    	setTable(reviewHandler, (HashMap<Integer, MovieReview>) reviewHandler.database);
         deleteByIdHolder.setVisible(false);
         searchReviewHolder.setVisible(true);
         posORneg.setVisible(false);
         radioHolder0.setVisible(false);
-        refreshButton.setVisible(false);
     }
 }
 
 public void actionPerformed(ActionEvent e)
 {
+	Thread thread1 = new Thread(() ->
+	{
+
     if(e.getSource() == submit)
     {
         int classif = -1;
@@ -355,8 +356,9 @@ public void actionPerformed(ActionEvent e)
         System.out.println(filepath);
 
         reviewHandler.loadReviews(filepath, classif);
-        setTable(reviewHandler, (HashMap<Integer, MovieReview>) reviewHandler.database);
+        paintTable(setTable(reviewHandler, (HashMap<Integer, MovieReview>) reviewHandler.database));
         reviewHandler.saveSerialDB();
+        submit.setVisible(false);
     }
     else if(e.getSource() == deleteButton)
     {
@@ -364,7 +366,10 @@ public void actionPerformed(ActionEvent e)
         {
             reviewHandler.deleteReview(Integer.parseInt(inputText.getText()));
             inputText.setText("Done!");
-            setTable(reviewHandler, (HashMap<Integer, MovieReview>) reviewHandler.database);
+
+            paintTable(setTable(reviewHandler, (HashMap<Integer, MovieReview>) reviewHandler.database));
+            scrollPane.validate();
+			scrollPane.repaint();
             reviewHandler.saveSerialDB();
         }
         catch (NumberFormatException e1)
@@ -377,7 +382,6 @@ public void actionPerformed(ActionEvent e)
         /*
         Create Hashtable
         Put the object that meets the criteria into the hashtable
-
         Call the settable method, which creates a table with the given hashmap
          */
 
@@ -390,7 +394,10 @@ public void actionPerformed(ActionEvent e)
             {
                 temp.put(id, reviewHandler.database.get(id));
             }
-            setTable(reviewHandler, temp);
+            
+            paintTable(setTable(reviewHandler, temp));
+            scrollPane.validate();
+			scrollPane.repaint();
             System.out.println("test");
         }
         else if (stringButton.isSelected())
@@ -409,18 +416,23 @@ public void actionPerformed(ActionEvent e)
             }
             reviewTable.setVisible(false);
 
-            setTable(reviewHandler, temp);
+            paintTable(setTable(reviewHandler, temp));
+            scrollPane.validate();
+			scrollPane.repaint();
         }
     }
-    else if (e.getSource() == refreshButton)
-    {
-        setTable(reviewHandler, (HashMap<Integer, MovieReview>) reviewHandler.database);
-    }
 
+	});
+
+	thread1.start();
+	
+	try
+	{
+		thread1.join();
+	}
+	catch(Exception excpt)
+	{
+		System.out.println(excpt);
+	}
 }
 }
-          
-
-                
-                
-            

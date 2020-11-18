@@ -1,4 +1,4 @@
-package src.movieReviewClassification;
+package movieReviewClassification;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import java.util.Scanner;
 //a class for processing movie review files and maintaining a database of those files
 public class ReviewHandler extends AbstractReviewHandler
 {
-    HashMap <String, Thread> threadList = new HashMap<>();
+    //HashMap <String, Thread> threadList = new HashMap<>();
     public ReviewHandler() 
     {
         super();
@@ -47,8 +47,8 @@ public class ReviewHandler extends AbstractReviewHandler
    */
     public void loadReviews(String filePath, int realClass)
     {
-        Thread temp = new Thread(() ->
-        {
+       // Thread temp = new Thread(() ->
+       // {
             // Setup creates the object ad sets our file up for use
             File reviewFile = new File(filePath);
             MovieReview object;
@@ -115,16 +115,7 @@ public class ReviewHandler extends AbstractReviewHandler
             }
 
             System.out.println(totalCorrectClassified + " out of " + count + " correctly classified.");
-        });
-
-        threadList.put("Load Reviews", temp);
-        try {
-            threadGuard(threadList.get("Load Reviews"));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
-        threadList.get("Load Reviews").start();
-    }
 
     /**
    *@param reviewFilePath a file path to the review(s) to be read into the database
@@ -158,21 +149,14 @@ public class ReviewHandler extends AbstractReviewHandler
    */
     public void deleteReview(int id) 
     {
-        Thread temp = new Thread(() ->
+        //Thread temp = new Thread(() ->
         {
             if (database.containsKey(id))
             {
                 database.remove(id);
             }
-        });
-
-        threadList.put("Delete Review", temp);
-        try {
-            threadGuard(threadList.get("Delete Review"));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
-        threadList.get("Delete Review").start();
+
     }
 
     public void close(Closeable c) 
@@ -185,18 +169,7 @@ public class ReviewHandler extends AbstractReviewHandler
      */
     public void saveSerialDB() 
     {
-        Thread temp = new Thread(() ->
-        {
             super.saveSerialDB();
-        });
-
-        threadList.put("Save Database", temp);
-        try {
-            threadGuard(threadList.get("Save Database"));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        threadList.get("Save Database").start();
     }
 
     /**
@@ -209,8 +182,6 @@ public class ReviewHandler extends AbstractReviewHandler
     @SuppressWarnings("unchecked")
     public void loadSerialDB() 
     {
-        Thread temp = new Thread(() ->
-        {
             System.out.println("Loading Database");
             try{
                 FileInputStream fis = new FileInputStream(DATA_FILE_NAME);
@@ -237,16 +208,6 @@ public class ReviewHandler extends AbstractReviewHandler
                 System.out.println("Failed to Load Database");
                 e.printStackTrace();
             }
-        });
-
-        threadList.put("Load Database", temp);
-        try {
-            threadGuard(threadList.get("Load Database"));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        threadList.get("Load Database").start();
-
     }
 
     /**
@@ -302,27 +263,4 @@ public class ReviewHandler extends AbstractReviewHandler
 
     }
 
-    /**
-     * Sole Purpose of this function is to prevent thread from getting state data, we dont want just copy and paste
-     * old code
-     * @param exclude : This is the thread that we are currently inside we dont want to join with this thread
-     */
-    public void threadGuard(Thread exclude) throws InterruptedException {
-        String [] monitoredThreads = {"Load Database" ,"Save Database", "Delete Review", "Load Reviews"};
-        for (String s : monitoredThreads)
-        {
-            if (threadList.get(s) != exclude) // not sure on the != but im pretty sure i want the exact thread not\
-                                             //  a thread that is equal value
-            {
-                //
-                if (threadList.get(s) != null)
-                {
-                    if (threadList.get(s).isAlive())
-                    {
-                        threadList.get(s).join();
-                    }
-                }
-            }
-        }
-    }
 }
