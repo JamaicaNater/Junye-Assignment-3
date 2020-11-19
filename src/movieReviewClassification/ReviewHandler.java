@@ -13,8 +13,9 @@ import java.util.Scanner;
  */
 
 //a class for processing movie review files and maintaining a database of those files
-public class ReviewHandler extends AbstractReviewHandler 
+public class ReviewHandler extends AbstractReviewHandler
 {
+    //HashMap <String, Thread> threadList = new HashMap<>();
     public ReviewHandler() 
     {
         super();
@@ -33,84 +34,88 @@ public class ReviewHandler extends AbstractReviewHandler
             key = key + 1;
         }
 
+        //Dont think making this a runnable would be on any benefit here since  i would need it to join before returning
+
         return key;
     }
 
 
    /**
-   *@param filepath input by the user on cmd line
+   * Note: THIS FUNCTION MAKES CHANGES
+   *@param filePath input by the user on cmd line
    *@param realClass input by user on cmd line
    */
-    public void loadReviews(String filePath, int realClass) 
+    public void loadReviews(String filePath, int realClass)
     {
-        // Setup creates the object ad sets our file up for use
-        File reviewFile = new File(filePath);
-        MovieReview object;
-        int predicted;
-        int count = 0; //using this to keep track of total correct classifications
-        int totalCorrectClassified = 0; //using this to keep track of total correct classifications
+       // Thread temp = new Thread(() ->
+       // {
+            // Setup creates the object ad sets our file up for use
+            File reviewFile = new File(filePath);
+            MovieReview object;
+            int predicted;
+            int count = 0; //using this to keep track of total correct classifications
+            int totalCorrectClassified = 0; //using this to keep track of total correct classifications
 
-        int key = database.size();
+            int key = database.size();
 
-        System.out.println("Loading reviews...");
+            System.out.println("Loading reviews...");
 
-        if (reviewFile.isDirectory())
-        {
+            if (reviewFile.isDirectory())
+            {
             /*
             For every string in the list we initialize it to the value returned by readReview
             Then we add it to our data base
              */
-            for (String s : reviewFile.list())
-            {
-            	count++;
-
-                try 
+                for (String s : reviewFile.list())
                 {
-                    object = readReview(filePath + System.getProperty("file.separator") + s, realClass);
-                } catch (IOException e) {
-                    System.out.println("Failed to load Reviews (plural)");
+                    count++;
+
+                    try
+                    {
+                        object = readReview(filePath + System.getProperty("file.separator") + s, realClass);
+                    } catch (IOException e) {
+                        System.out.println("Failed to load Reviews (plural)");
+                        e.printStackTrace();
+                        return;
+                    }
+
+                    predicted = classifyReview(object); // added this to assign predicted class to each review before pushing in DB
+
+                    if (predicted == object.getRealClass() && object.getRealClass() != 2)
+                    {
+                        totalCorrectClassified++;
+                    }
+
+                    database.put( object.setID(keyNext()) , object );
+                }
+
+            }
+            else
+            {
+                count++;
+
+                try
+                {
+                    object = readReview(filePath, realClass); //changed reviewFile.getPath() to filePath // I think it was just converting it back
+                } catch (IOException e)
+                {
+                    System.out.println("Failed to load Review (singular)");
                     e.printStackTrace();
                     return;
                 }
 
                 predicted = classifyReview(object); // added this to assign predicted class to each review before pushing in DB
 
-       			if (predicted == object.getRealClass() && object.getRealClass() != 2)
-       			{
-       				totalCorrectClassified++;
-       			}
+                if (predicted == object.getRealClass() && object.getRealClass() != 2)
+                {
+                    totalCorrectClassified++;
+                }
 
                 database.put( object.setID(keyNext()) , object );
             }
 
+            System.out.println(totalCorrectClassified + " out of " + count + " correctly classified.");
         }
-        else
-        {
-        	count++;
-
-            try 
-            {
-                object = readReview(filePath, realClass); //chaned reviewFile.getPath() to filePath // I think it was just converting it back
-            } catch (IOException e) 
-            {
-                System.out.println("Failed to load Review (singular)");
-                e.printStackTrace();
-                return;
-            }
-
-            predicted = classifyReview(object); // added this to assign predicted class to each review before pushing in DB
-
-            if (predicted == object.getRealClass() && object.getRealClass() != 2)
-       			{
-       				totalCorrectClassified++;
-       			}
-
-            database.put( object.setID(keyNext()) , object );
-        }
-
-        System.out.println(totalCorrectClassified + " out of " + count + " correctly classified.");
-
-    }
 
     /**
    *@param reviewFilePath a file path to the review(s) to be read into the database
@@ -138,21 +143,20 @@ public class ReviewHandler extends AbstractReviewHandler
     }
 
    /**
+   * Note: THIS FUNCTION MAKES CHANGES
    *@param id takes a in a movie review id (key) and deletes it from the database
    *
    */
     public void deleteReview(int id) 
     {
-    	System.out.println("Deleting... ");
+        //Thread temp = new Thread(() ->
+        {
+            if (database.containsKey(id))
+            {
+                database.remove(id);
+            }
+        }
 
-        if (database.containsKey(id))
-        {
-            database.remove(id);
-        }
-        else
-        {
-        	System.out.println("ID does not exist in database...");
-        }
     }
 
     public void close(Closeable c) 
@@ -160,12 +164,16 @@ public class ReviewHandler extends AbstractReviewHandler
         super.close(c);
     }
 
+    /**
+     * Note: THIS FUNCTION MAKES CHANGES
+     */
     public void saveSerialDB() 
     {
-        super.saveSerialDB();
+            super.saveSerialDB();
     }
 
     /**
+     * Note: THIS FUNCTION READS CHANGES
      * Creates a ObjectInputStream to read in information to our database then closes the database
      * @throws FileNotFoundException
      * @throws IOException
@@ -174,33 +182,36 @@ public class ReviewHandler extends AbstractReviewHandler
     @SuppressWarnings("unchecked")
     public void loadSerialDB() 
     {
-        System.out.println("Loading Database");
-        try{
-            FileInputStream fis = new FileInputStream(DATA_FILE_NAME);
-            ObjectInputStream ois = new ObjectInputStream(fis);
+            System.out.println("Loading Database");
+            try{
+                FileInputStream fis = new FileInputStream(DATA_FILE_NAME);
+                ObjectInputStream ois = new ObjectInputStream(fis);
 
-            database = (HashMap<Integer,MovieReview>)ois.readObject();
+                database = (HashMap<Integer,MovieReview>)ois.readObject();
 
-            fis.close();
-        }
-        catch (FileNotFoundException e)
-        {
-            System.out.println("Failed to Load Database");
-            e.printStackTrace();
-        }
-        catch (IOException e)
-        {
-            System.out.println("Failed to Load Database");
-            e.printStackTrace();
-        }
-        catch (ClassNotFoundException e)
-        {
-            System.out.println("Failed to Load Database");
-            e.printStackTrace();
-        }
+                fis.close();
+                System.out.println("Finished Loading Database");
+
+            }
+            catch (FileNotFoundException e)
+            {
+                System.out.println("Failed to Load Database");
+                e.printStackTrace();
+            }
+            catch (IOException e)
+            {
+                System.out.println("Failed to Load Database");
+                e.printStackTrace();
+            }
+            catch (ClassNotFoundException e)
+            {
+                System.out.println("Failed to Load Database");
+                e.printStackTrace();
+            }
     }
 
     /**
+     * Note: THIS FUNCTION READS CHANGES
      * First we use the contains key method of the database to check if the database even has what we are looking for
      * then we simply return the movie review whose key corresponds to what is asked
      *
@@ -220,6 +231,7 @@ public class ReviewHandler extends AbstractReviewHandler
     }
 
     /**
+     * Note: THIS FUNCTION READS CHANGES
      * The idea here is that we turn use the keySet method of the hashmap to give us a list of all the keys that we use
      * in the database. We can then iterate through all the keys and discover which ones contains the substring that
      * we want.
@@ -250,4 +262,5 @@ public class ReviewHandler extends AbstractReviewHandler
         }
 
     }
+
 }
